@@ -1,48 +1,54 @@
+import json
 import scrapy
 from naver_news.items import MyItem
 
-
 class News(scrapy.Spider):
     name = 'news'
+    page = 1 
+    items = []
 
+    # 처음: 연도별 url을 모은다.(첫번째 페이지임)
     def start_requests(self):
-        # 2022년부터 2023년까지의 첫 페이지 URL을 생성합니다.
-        for year in range(2022, 2024):
-            yield scrapy.Request(url=f'https://search.mt.co.kr/searchNewsList.html?srchFd=T&range=IN&reSrchFlag=&preKwd=&search_type=m&kwd=%B1%DD%B8%AE&bgndt={year}0101&enddt={year}1231&category=MTNW&sortType=display&subYear={year}&category=MTNW&subType=mt&pageNum=1',
-                                 callback=self.parse_total_pages,
-                                 meta={'year': year})
+        for year in range(2016, 2024):
+            year_url = f'https://search.mt.co.kr/searchNewsList.html?srchFd=T&range=IN&reSrchFlag=&preKwd=&search_type=m&kwd=%B1%DD%B8%AE&bgndt={year}0101&enddt={year}1231&category=MTNW&sortType=display&subYear={year}&category=MTNW&subType=mt&pageNum=1'
 
+            yield scrapy.Request(url=year_url, callback=self.parse_total_pages)
+    
+    # 각각의 연도별 모든 페이지의 url를 모은다
     def parse_total_pages(self, response):
-    # 마지막 페이지 버튼을 선택합니다.
-        last_page_button = response.css('button.end')
-        if last_page_button:
-        # 마지막 페이지 버튼의 텍스트를 가져옵니다.
-            last_page_text = last_page_button.css('button.end::text').get()
-        # 텍스트에서 숫자 부분을 추출합니다.
-            last_page_number = int(last_page_text)
-        
-        # 각 페이지에 대한 요청을 보냅니다.
-            year = response.meta['year']
-            for page_num in range(1, last_page_number + 1):
-                page_url = f'https://search.mt.co.kr/searchNewsList.html?srchFd=T&range=IN&reSrchFlag=&preKwd=&search_type=m&kwd=%B1%DD%B8%AE&bgndt={year}0101&enddt={year}1231&category=MTNW&sortType=display&subYear={year}&category=MTNW&subType=mt&pageNum={page_num}'
+        page_num = response.css('.end::attr(onclick)').get()
+        page_num = int(page_num.split('pageNum=')[1].rstrip("';"))
+        for page in range(1, page_num + 1):
+            page_url = response.url.replace('pageNum=1', f'pageNum={page}')
             yield scrapy.Request(url=page_url, callback=self.parse)
-        else:
-            self.logger.warning("Last page button not found.")
 
+    # 모든 연도,페이지의 url을 통하여 내가 파싱해야하는 하이퍼링크 주소를 모은다
     def parse(self, response):
-        # href 가져오기
         hrefs = response.css('.conlist_p1.mgt23 a::attr(href)').extract()
 
         for href in hrefs[::3]:
             if 'news.mt.co.kr/mtview.php' in href:
-                # 새로운 request 보내기
                 yield scrapy.Request(url=response.urljoin(href), callback=self.parse_news)
 
+    # 필요한 정보(제목, 본문, 날짜 등등) 모은다
     def parse_news(self, response):
-        # 여기서 두 번째 페이지에서 필요한 정보를 스크랩합니다.
         item = MyItem()
-        # 제목 가져오기
-        item['title'] = response.css('h1::text').get()
-        # 내용 가져오기
-        # item['content'] = '\n'.join(response.css('.view_text::text').extract())
+
+        # 날짜, 제목, 내용 추출
+        date = response.css('li.date::text').get().replace('\n', '').replace('\r', '').strip()
+        title = response.css('h1::text').get().replace('\n', '').replace('\r', '').strip()
+        content = response.css('#textBody::text').extract()
+        stripped_content = ' '.join(content).strip().replace('\n', '').replace('\r', '')  # 내용을 하나의 문자열로 결합 및 공백 제거
+
+        # MyItem에 데이터 할당
+        item['date'] = date.split(' ')[0].replace('.','-')
+        item['title'] = title
+        item['content'] = stripped_content
+
+        self.items.append({'date': date, 'title': title, 'content': stripped_content})
+
         yield item
+
+    def closed(self, reason):
+        with open('output.json', 'w', encoding='utf-8') as jsonfile:
+            json.dump(self.items, jsonfile, ensure_ascii=False, indent=4)

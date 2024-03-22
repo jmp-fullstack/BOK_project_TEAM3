@@ -11,6 +11,8 @@ BOT_NAME = "naver_news"
 
 SPIDER_MODULES = ["naver_news.spiders"]
 NEWSPIDER_MODULE = "naver_news.spiders"
+LOG_LEVEL = 'ERROR'
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
@@ -62,9 +64,9 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
+# ITEM_PIPELINES = {
 #    "naver_news.pipelines.NaverNewsPipeline": 300,
-#}
+# }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
