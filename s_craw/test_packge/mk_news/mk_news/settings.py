@@ -11,13 +11,12 @@ BOT_NAME = "mk_news"
 
 SPIDER_MODULES = ["mk_news.spiders"]
 NEWSPIDER_MODULE = "mk_news.spiders"
-
-
-# Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = "mk_news (+http://www.yourdomain.com)"
+# LOG_LEVEL = 'ERROR'
+LOG_LEVEL = 'DEBUG'
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
