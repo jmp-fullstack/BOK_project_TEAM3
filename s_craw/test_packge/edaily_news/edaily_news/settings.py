@@ -9,15 +9,23 @@
 
 BOT_NAME = "edaily_news"
 
+<<<<<<< HEAD:s_craw/test_packge/edaily_news/edaily_news/settings.py
 SPIDER_MODULES = ["edaily_news.spiders"]
 NEWSPIDER_MODULE = "edaily_news.spiders"
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "edaily_news (+http://www.yourdomain.com)"
+=======
+SPIDER_MODULES = ["mk_news.spiders"]
+NEWSPIDER_MODULE = "mk_news.spiders"
+# LOG_LEVEL = 'ERROR'
+LOG_LEVEL = 'DEBUG'
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+>>>>>>> 9ecabb97a91e184a74426f21506da9d719a8f0b2:s_craw/test_packge/mk_news/mk_news/settings.py
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
