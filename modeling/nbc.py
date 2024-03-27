@@ -7,27 +7,29 @@ dovish_df = pd.read_csv(dovish_test_path,sep=',')
 hawkish_df = pd.read_csv(hawkish_test_path,sep=',')
 
 words = [word.split() for word in dovish_df['words'].tolist()]
-df = pd.DataFrame(index=[0], columns=['P', 'N', 'Polarity','Intensity','label'])
-print(df)
+df = pd.DataFrame(index=[0], columns=['P', 'N', 'P(word|P)','N(word|N)','log(P(word|N))','log(N(word|N))'])
+
 
 
 from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(
-    news_df['words'], news_df['label'], shuffle=True, test_size=0.2)
-X_train, y_train
-
-
-label_mapping = {'비둘기파': 0,'매파':1}
-Y_train = [label_mapping[label] for label in news_df['label'].tolist()]
-
-
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
+import numpy as np
 
-count_vect = CountVectorizer()
+def mytokenizer(x):
+    return x.split()
+
+X_train, X_test, y_train, y_test = train_test_split(df['document'], df['label'], random_state=0)
+count_vect = CountVectorizer(tokenizer=mytokenizer)
 X_train_counts = count_vect.fit_transform(X_train)
-clf = MultinomialNB().fit(X_train_counts, y_train)
+tfidf_transformer = TfidfTransformer()
+X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
+clf = MultinomialNB().fit(X_train_tfidf, y_train)
 
+X_test_tfidf = tfidf_transformer.transform(count_vect.transform(X_test))
+predicted_probas = clf.predict_proba(X_test_tfidf)
 
-print(clf.predict(count_vect.transform(["a"])))
-print(clf.predict_proba(count_vect.transform(["i_love"])))
+for idx, doc in enumerate(X_test):
+    probas = predicted_probas[idx]
+    print(f"{doc}\t{probas[0]}\t{probas[1]}\t{np.log(probas[0])}\t{np.log(probas[1])}")
